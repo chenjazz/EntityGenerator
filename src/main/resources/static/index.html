@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>实体生成器v1</title>
+    <script src="jquery/jquery-3.2.1.js"></script>
+    <link href="bootstrap-3.3.7-dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="bootstrap-3.3.7-dist/js/bootstrap.min.js" rel="stylesheet">
+
+</head>
+<body class="container-fluid">
+<div class="row">
+
+
+    <div class="col-md-4">
+        <form>
+            <h3>配置</h3>
+            <label>jdbcUrl (*必填,支持mysql/oracle/pgsql/sqlserver)</label>
+            <input id="url" class="form-control" type="text" value="jdbc:postgresql://192.168.0.226:5432/picasso_dev2">
+            <label>userName (*必填)</label>
+            <input id="userName" class="form-control" type="text" value="developer">
+            <label>password (*必填)</label>
+            <input id="password" class="form-control" type="text" value="password">
+            <label>生成代码的包名称</label>
+            <input id="pkgName" class="form-control" type="text" placeholder="比如：cn.com.vdin.entity">
+
+            <hr>
+            <h3>操作</h3>
+            <input class="btn btn-success" type="button" onclick="showTables()" value="显示表">
+            <input class="btn btn-warning" type="button" onclick="getAllChecked()" value="获取代码">
+            <input class="btn btn-danger" type="button" onclick="down()" value="下载文件">
+
+            <br>
+            <br>
+            <p>
+                注：【获取代码】适合数量较少表； <br>【下载文件】会下载zip文件包，适合数量较多表
+            </p>
+
+            <hr>
+            <p>
+                url示例：
+            </p>
+            <p>
+                【postgresql】jdbc:postgresql://192.168.0.226:5432/picasso_dev2
+            </p>
+            <p>
+                【mysql】jdbc:mysql://192.168.0.181/omts?useSSL=false&generateSimpleParameterMetadata=true
+            </p>
+ <p>
+                【oracle】jdbc:oracle:thin:@192.168.0.130:1521:xe
+            </p>
+
+        </form>
+    </div>
+    <!--<div class="col-md-4"  >-->
+    <!--</div>-->
+    <div class="col-md-3">
+        <h3>
+            选择表：
+        </h3>
+        <hr>
+        <div>
+            <button class="btn btn-primary btn-xs" onclick="allCheck()">全选</button>
+            <button class="btn btn-danger btn-xs" onclick="noCheck()">取消选择</button>
+            <button class="btn btn-default btn-xs" onclick="reverseCheck()">反选</button>
+        </div>
+        <br>
+        <div class="row pre-scrollable" style="max-height: 730px">
+
+            <div id="check">
+
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <h3>生成代码</h3>
+        <hr>
+        <div id="cls">
+
+        </div>
+    </div>
+</div>
+</body>
+<script>
+    function showTables() {
+        $.get(
+            "/get_tables",
+            {
+                url: $('#url').val(),
+                userName: $('#userName').val(),
+
+                password: $('#password').val()
+            },
+            function (data, status) {
+                $("#check").empty();
+                for (var i = 0; i < data.length; i++) {
+                    var str = "<input type='checkbox' name='tableName'  value='{}' />{}<br>".replace("{}", data[i]).replace("{}", data[i])
+                    $("#check").append(str);
+                }
+            },
+            "json"
+        )
+    }
+
+
+    function getAllChecked() {
+        var chk_value = [];
+        $('input[name="tableName"]:checked').each(function () {
+            chk_value.push($(this).val());
+        });
+        console.log("check-table:==========" + chk_value)
+        if (chk_value.length === 0) {
+            alert("没有选中任何表")
+            return
+        }
+        $.ajax({
+            url: "/get_class",
+            data: {
+                url: $('#url').val(),
+                userName: $('#userName').val(),
+                password: $('#password').val(),
+                pkgName: $('#pkgName').val(),
+                tableNames: chk_value
+            },
+            traditional: true,
+            success: function (data, status) {
+                $("#cls").empty();
+                for (var key in data) {
+                    var javaClassStr = "<hr>表名称：" + key + "<br><br>"
+                    javaClassStr += "<pre>"
+                    for (var i = 0; i < data[key].length; i++) {
+                        javaClassStr += (data[key][i])
+                        javaClassStr += "<br>"
+                    }
+                    $("#cls").append(javaClassStr + "</pre> ")
+                }
+            }
+        })
+
+    }
+
+    function down() {
+        var chk_value = [];
+        $('input[name="tableName"]:checked').each(function () {
+            chk_value.push($(this).val());
+        });
+        console.log("check-table:==========" + chk_value)
+        if (chk_value.length === 0) {
+            alert("没有选中任何表")
+            return
+        }
+        var nameUrl = "";
+        for (var i = 0; i < chk_value.length; i++) {
+            nameUrl += ("&tableNames=" + chk_value[i])
+        }
+
+        var url = "/get_class_file?" +
+            "url=" + $('#url').val() +
+            "&userName=" + $('#userName').val() +
+            "&password=" + $('#password').val() +
+            "&pkgName=" + $('#pkgName').val() +
+            nameUrl
+        window.open(url)
+    }
+
+    function allCheck() {
+        $('input[name="tableName"]').each(function () {
+            $(this).prop('checked', true);
+        });
+    }
+
+    function noCheck() {
+        $('input[name="tableName"]').each(function () {
+            $(this).prop('checked', false);
+        });
+    }
+
+    function reverseCheck() {
+        $('input[name="tableName"]').each(function () {
+            var attr = $(this).prop('checked');
+            if (attr === true) {
+                $(this).prop('checked', false);
+            } else {
+                $(this).prop('checked', true);
+            }
+        });
+    }
+</script>
+
+</html>
