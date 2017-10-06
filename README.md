@@ -12,3 +12,5 @@ mvn spring-boot:run
 ```
 
 3.启动成功后使用浏览器访问`http://localhost:8666/`，按照界面说明进行操作。
+
+![](image.png)
