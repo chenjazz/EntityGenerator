@@ -2,10 +2,13 @@ package cn.com.vdin.entity.gen;
 
 import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.jdbc.datasource.SimpleDriverDataSource;
 import org.springframework.util.StringUtils;
@@ -23,7 +26,9 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
+import java.awt.*;
 import java.io.IOException;
+import java.net.URI;
 import java.sql.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -46,7 +51,24 @@ import static springfox.documentation.builders.PathSelectors.regex;
 public class EntityGenApplication {
 
     public static void main(String[] args) {
+        System.setProperty("java.awt.headless", "false");
         SpringApplication.run(EntityGenApplication.class, args);
+    }
+
+    @Autowired
+    ServerProperties serverProperties;
+
+    @Bean
+    public CommandLineRunner commandLineRunner() {
+        return (String[] args) -> {
+            try {
+                URI uri = new URI("http://localhost:" + serverProperties.getPort());
+                log.info(uri.toString());
+                Desktop.getDesktop().browse(uri);
+            } catch (Exception e) {
+                log.warn("无法打开浏览器", e);
+            }
+        };
     }
 
     private Connection getConn(String url, String userName, String password) throws SQLException {
@@ -73,8 +95,8 @@ public class EntityGenApplication {
 
     @GetMapping(value = "get_tables")
     public List<String> getTables(@RequestParam String url,
-                            @RequestParam String userName,
-                            @RequestParam String password) throws SQLException {
+                                  @RequestParam String userName,
+                                  @RequestParam String password) throws SQLException {
         Connection connection = getConn(url, userName, password);
         ResultSet resultSet = connection.getMetaData().getTables(null, null, null, new String[]{"TABLE"});
 
