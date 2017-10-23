@@ -2,8 +2,6 @@ package cn.com.vdin.entity.gen;
 
 //import cn.com.zdht.pavilion.mybatis.MyBatisExtUtils;
 
-import com.sun.xml.bind.v2.TODO;
-
 /**
  * @author 陈佳志
  * 2017-09-03
@@ -22,7 +20,7 @@ public class StringExtUtils {
             return "";
         }
         int len = param.length();
-        param = param .toLowerCase();
+        param = param.toLowerCase();
         StringBuilder sb = new StringBuilder(len);
         for (int i = 0; i < len; i++) {
             char c = param.charAt(i);
@@ -68,7 +66,31 @@ public class StringExtUtils {
         return sb.toString();
     }
 
+    public static boolean isFirstLowerCamel(String str) {
+        if (str.contains("_")) {
+            return false; //不含有_
+        }
+        char[] chars = str.toCharArray();
+        if (chars[0] >= 65 && chars[0] <= 90) {
+            return false;//第一个字母不能是大写
+        }
+        for (int i = 1; i < chars.length; i++) {
+            //必须含有大写
+            if (chars[i] >= 65 && chars[i] <= 90) {
+                return true;
+            }
+        }
 
+        return false;
+    }
+
+//    public static void main(String[] args) {
+//        System.out.println(isFirstLowerCamel("hiName"));
+//        System.out.println(isFirstLowerCamel("his"));
+//        System.out.println(isFirstLowerCamel("ABC"));
+//        System.out.println(isFirstLowerCamel("aBcD"));
+//        System.out.println(isFirstLowerCamel("aB_cD"));
+//    }
 
 
     public static String firstCharUpper(String str) {

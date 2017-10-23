@@ -189,7 +189,11 @@ public class EntityGenApplication {
                 if (columnName.equals("id")) {
                     javaClassStr.add("    @Id");
                 }
-                javaClassStr.add("    private " + getJavaType(columnType) + " " + underlineToCamel(columnName) + ";");
+                if (isFirstLowerCamel(columnName)) {
+                    javaClassStr.add("    private " + getJavaType(columnType) + " " + columnName + ";");
+                } else {
+                    javaClassStr.add("    private " + getJavaType(columnType) + " " + underlineToCamel(columnName) + ";");
+                }
                 javaClassStr.add("");
 
                 System.out.println(columnName + "  " + columnType);
