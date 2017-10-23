@@ -206,6 +206,7 @@ public class EntityGenApplication {
 
 
     private String getJavaType(String columnType) {
+        columnType = columnType.toLowerCase();
         if (columnType.contains("int")) {
             return "Integer";
         } else if (columnType.contains("bool")) {
