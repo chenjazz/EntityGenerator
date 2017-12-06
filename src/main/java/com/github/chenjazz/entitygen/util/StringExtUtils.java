@@ -1,6 +1,5 @@
-package cn.com.vdin.entity.gen;
+package com.github.chenjazz.entitygen.util;
 
-//import cn.com.zdht.pavilion.mybatis.MyBatisExtUtils;
 
 /**
  * @author 陈佳志

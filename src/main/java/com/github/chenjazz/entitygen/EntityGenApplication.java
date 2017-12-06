@@ -1,7 +1,8 @@
-package cn.com.vdin.entity.gen;
+package com.github.chenjazz.entitygen;
 
-import com.google.common.collect.Sets;
-import lombok.extern.slf4j.Slf4j;
+import com.github.chenjazz.entitygen.util.StringExtUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -15,13 +16,6 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import springfox.documentation.builders.ApiInfoBuilder;
-import springfox.documentation.builders.RequestHandlerSelectors;
-import springfox.documentation.service.ApiInfo;
-import springfox.documentation.service.Contact;
-import springfox.documentation.spi.DocumentationType;
-import springfox.documentation.spring.web.plugins.Docket;
-import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
@@ -30,7 +24,6 @@ import java.awt.*;
 import java.io.IOException;
 import java.net.URI;
 import java.sql.*;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -40,15 +33,12 @@ import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import static cn.com.vdin.entity.gen.StringExtUtils.*;
-import static com.google.common.base.Predicates.or;
-import static springfox.documentation.builders.PathSelectors.regex;
-
 @SpringBootApplication(exclude = {DataSourceAutoConfiguration.class, HibernateJpaAutoConfiguration.class})
 @RestController
-@EnableSwagger2
-@Slf4j
+//@EnableSwagger2
 public class EntityGenApplication {
+
+    private static final Logger log = LoggerFactory.getLogger(EntityGenApplication.class);
 
     public static void main(String[] args) {
         System.setProperty("java.awt.headless", "false");
@@ -65,7 +55,7 @@ public class EntityGenApplication {
                 URI uri = new URI("http://localhost:" + serverProperties.getPort());
                 log.info(uri.toString());
                 Desktop.getDesktop().browse(uri);
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 log.warn("无法打开浏览器", e);
             }
         };
@@ -116,7 +106,6 @@ public class EntityGenApplication {
                                             @RequestParam String userName,
                                             @RequestParam(required = false) String pkgName,
                                             @RequestParam String password) throws SQLException {
-        log.warn("111");
         Connection conn = getConn(url, userName, password);
         Map<String, List<String>> nameWithJavaMap = getStringListMap(tableNames, conn, pkgName);
         conn.close();
@@ -189,10 +178,10 @@ public class EntityGenApplication {
                 if (columnName.equals("id")) {
                     javaClassStr.add("    @Id");
                 }
-                if (isFirstLowerCamel(columnName)) {
+                if (StringExtUtils.isFirstLowerCamel(columnName)) {
                     javaClassStr.add("    private " + getJavaType(columnType) + " " + columnName + ";");
                 } else {
-                    javaClassStr.add("    private " + getJavaType(columnType) + " " + underlineToCamel(columnName) + ";");
+                    javaClassStr.add("    private " + getJavaType(columnType) + " " + StringExtUtils.underlineToCamel(columnName) + ";");
                 }
                 javaClassStr.add("");
 
@@ -205,7 +194,7 @@ public class EntityGenApplication {
     }
 
     private String getJavaClassName(String tableName) {
-        return pluralToSingular(firstCharUpper(underlineToCamel(tableName)));
+        return StringExtUtils.pluralToSingular(StringExtUtils.firstCharUpper(StringExtUtils.underlineToCamel(tableName)));
     }
 
 
@@ -230,27 +219,26 @@ public class EntityGenApplication {
         }
     }
 
-    @Bean
-    public Docket customDocket() {
-        return new Docket(DocumentationType.SWAGGER_2)
-                .select()
-//                .apis(not(RequestHandlerSelectors.basePackage("org.springframework.boot.autoconfigure.web")))
-                .apis(RequestHandlerSelectors.basePackage("cn.com.vdin.entity.gen"))//*不同项目此处需要修改
-                .paths(or(regex("/.*")))
-                .build()//--------------
-                .directModelSubstitute(LocalDate.class, String.class)
-                .directModelSubstitute(LocalDateTime.class, String.class)
-                .apiInfo(getApiInfo()) //以下为文档信息设置
-                .produces(Sets.newHashSet("application/json"))
-                .consumes(Sets.newHashSet("application/json"));
-    }
-
-    private ApiInfo getApiInfo() {
-        return new ApiInfoBuilder()
-                .title("主平台")
-                .version("2.0")
-                .description("主平台practition-api")
-                .contact(new Contact("zdht", "http://www.vdin.com.cn/", "zdht@vdin.net"))
-                .build();
-    }
+//    @Bean
+//    public Docket customDocket() {
+//        return new Docket(DocumentationType.SWAGGER_2)
+//                .select()
+//                .apis(RequestHandlerSelectors.basePackage("cn.com.vdin.entity.gen"))//*不同项目此处需要修改
+//                .paths(or(regex("/.*")))
+//                .build()//--------------
+//                .directModelSubstitute(LocalDate.class, String.class)
+//                .directModelSubstitute(LocalDateTime.class, String.class)
+//                .apiInfo(getApiInfo()) //以下为文档信息设置
+//                .produces(Sets.newHashSet("application/json"))
+//                .consumes(Sets.newHashSet("application/json"));
+//    }
+//
+//    private ApiInfo getApiInfo() {
+//        return new ApiInfoBuilder()
+//                .title("主平台")
+//                .version("2.0")
+//                .description("主平台practition-api")
+//                .contact(new Contact("zdht", "http://www.vdin.com.cn/", "zdht@vdin.net"))
+//                .build();
+//    }
 }
